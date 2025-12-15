@@ -16,11 +16,11 @@ A powerful Go-based tool for automating bug bounty report emails. This tool proc
 
 ### Prerequisites
 - **emailextractor**: Required for email extraction from domains
-  ```bash
+  ```yaml
   go install github.com/rix4uni/emailextractor@latest
   ```
 - **tldinfo**: Required for domain filtering (optional, only if using `--domain-filter`)
-  ```bash
+  ```yaml
   pipx install --force git+https://github.com/rix4uni/tldinfo.git
   ```
 
@@ -94,7 +94,7 @@ You can define multiple credential profiles in `config.yaml` and select which on
 
 ### Basic Usage
 
-```bash
+```yaml
 # Process all markdown files in the default 'mdfile' directory
 emailautomation
 
@@ -122,19 +122,19 @@ emailautomation --markdown-file /path/to/reports
 
 #### Single File Processing
 
-```bash
+```yaml
 emailautomation --markdown-file report.md
 ```
 
 #### Directory Processing
 
-```bash
+```yaml
 emailautomation --markdown-file /path/to/reports
 ```
 
 #### Using Different Credential Profile
 
-```bash
+```yaml
 emailautomation --id 2
 ```
 
@@ -142,7 +142,7 @@ emailautomation --id 2
 
 Only send emails to addresses matching the base domain:
 
-```bash
+```yaml
 emailautomation --domain-filter
 ```
 
@@ -150,7 +150,7 @@ emailautomation --domain-filter
 
 Set a custom delay between emails (in seconds):
 
-```bash
+```yaml
 # Wait 10 minutes (600 seconds) between emails
 emailautomation --delay 600
 
@@ -162,7 +162,7 @@ emailautomation --delay 0
 
 Save the email message to `email_debug.txt` for inspection:
 
-```bash
+```yaml
 emailautomation --debug
 ```
 
@@ -170,13 +170,13 @@ emailautomation --debug
 
 Send emails as plain text instead of HTML:
 
-```bash
+```yaml
 emailautomation --nomarkdown
 ```
 
 #### Combined Flags
 
-```bash
+```yaml
 emailautomation --markdown-file reports --id 2 --domain-filter --delay 300 --debug
 ```
 
@@ -286,7 +286,7 @@ Gmail allows **500 emails per 24 hours**. The default delay of 300 seconds (5 mi
 
 ### Adjusting Delay
 
-```bash
+```yaml
 # Conservative (10 minutes between emails)
 emailautomation --delay 600
 
