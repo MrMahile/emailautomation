@@ -16,11 +16,11 @@ A powerful Go-based tool for automating bug bounty report emails. This tool proc
 
 ### Prerequisites
 - **emailextractor**: Required for email extraction from domains
-  ```yaml
+  ```
   go install github.com/rix4uni/emailextractor@latest
   ```
 - **tldinfo**: Required for domain filtering (optional, only if using `--domain-filter`)
-  ```yaml
+  ```
   pipx install --force git+https://github.com/rix4uni/tldinfo.git
   ```
 
@@ -224,7 +224,7 @@ Type: Remote Code Execution
 
 ## File Structure
 
-```
+```yaml
 emailautomation/
 ├── emailautomation    # Main application
 ├── config.yaml           # Configuration file (can be in ~/.config/emailautomation/)
