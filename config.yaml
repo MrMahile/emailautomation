@@ -1,0 +1,14 @@
+credentials:
+  - id: "1"
+    email: "mail1@gmail.com"
+    app_password: "7b6ef775675E11c"
+    smtp_host: "smtp.gmail.com"
+    smtp_port: "587"
+    subject: "Bug Bounty Report: Unauthenticated Remote Code Execution via CVE-2025-55182"
+
+  - id: "2"
+    email: "mail2@gmail.com"
+    app_password: "f44134daf6830cc"
+    smtp_host: "smtp.gmail.com"
+    smtp_port: "587"
+    subject: "Bug Bounty Report: Unauthenticated Remote Code Execution via CVE-2025-55182"
