@@ -32,9 +32,9 @@ go install github.com/rix4uni/emailautomation@latest
 
 ## Download prebuilt binaries
 ```
-wget https://github.com/rix4uni/emailautomation/releases/download/v0.0.2/emailautomation-linux-amd64-0.0.2.tgz
-tar -xvzf emailautomation-linux-amd64-0.0.2.tgz
-rm -rf emailautomation-linux-amd64-0.0.2.tgz
+wget https://github.com/rix4uni/emailautomation/releases/download/v0.0.3/emailautomation-linux-amd64-0.0.3.tgz
+tar -xvzf emailautomation-linux-amd64-0.0.3.tgz
+rm -rf emailautomation-linux-amd64-0.0.3.tgz
 mv emailautomation ~/go/bin/emailautomation
 ```
 Or download [binary release](https://github.com/rix4uni/emailautomation/releases) for your platform.
@@ -234,7 +234,7 @@ emailautomation/
 ├── go.sum                # Go dependency checksums
 ├── sent_emails.log       # Log of sent emails (auto-generated)
 ├── email_debug.txt       # Debug email output (when using --debug)
-├── emailnotfound/        # Directory for files with no emails found (auto-generated)
+├── skippedemails/        # Directory for skipped reports (auto-generated)
 └── mdfile/               # Default directory for markdown files
     ├── 1.md
     ├── 2.md
@@ -268,9 +268,13 @@ If credentials are invalid, the program will:
 ### No Emails Found
 
 If no emails are found for a domain:
-- File is copied to `emailnotfound/` directory
+- File is copied to `skippedemails/` directory (with a unique suffix)
 - Processing continues with next file
 - Not treated as an error
+
+The same `skippedemails/` directory is also used when:
+- `--domain-filter` removes all recipients
+- `--emailverify` removes all recipients
 
 ### Already Sent
 
@@ -321,7 +325,7 @@ emailautomation --delay 0
 - Ensure `emailextractor` is installed and in PATH
 - Check that the domain in the markdown file is correct
 - Verify the domain is accessible
-- Check `emailnotfound/` directory for files with no emails
+- Check `skippedemails/` directory for skipped reports
 
 ### "Failed to extract base domain"
 

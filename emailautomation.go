@@ -836,34 +836,46 @@ func extractEmailsFromDomain(domain string) ([]string, error) {
 	return emails, nil
 }
 
-// handleNoEmailsFound creates emailnotfound directory and copies the markdown file there
-func handleNoEmailsFound(mdFilePath string) error {
-	// Create emailnotfound directory
-	if err := os.MkdirAll("emailnotfound", 0755); err != nil {
-		return fmt.Errorf("failed to create emailnotfound directory: %w", err)
+// handleSkippedEmail creates skippedemails directory and copies the markdown file there.
+// It adds a unique suffix to avoid filename collisions.
+func handleSkippedEmail(mdFilePath string, reason string) error {
+	const skippedDir = "skippedemails"
+
+	if err := os.MkdirAll(skippedDir, 0755); err != nil {
+		return fmt.Errorf("failed to create %s directory: %w", skippedDir, err)
 	}
 
-	// Get filename from path
-	filename := filepath.Base(mdFilePath)
-	destPath := filepath.Join("emailnotfound", filename)
+	base := filepath.Base(mdFilePath)
+	ext := filepath.Ext(base)
+	name := strings.TrimSuffix(base, ext)
+	ts := time.Now().Format("20060102-150405")
 
-	// Open source file
+	// Base destination name: <name>__<reason>__<timestamp>.md
+	destBase := fmt.Sprintf("%s__%s__%s%s", name, reason, ts, ext)
+	destPath := filepath.Join(skippedDir, destBase)
+
+	// If collision, add counter suffix.
+	for i := 1; ; i++ {
+		if _, err := os.Stat(destPath); os.IsNotExist(err) {
+			break
+		}
+		destBase = fmt.Sprintf("%s__%s__%s__%d%s", name, reason, ts, i, ext)
+		destPath = filepath.Join(skippedDir, destBase)
+	}
+
 	src, err := os.Open(mdFilePath)
 	if err != nil {
 		return fmt.Errorf("failed to open source file: %w", err)
 	}
 	defer src.Close()
 
-	// Create destination file
 	dst, err := os.Create(destPath)
 	if err != nil {
 		return fmt.Errorf("failed to create destination file: %w", err)
 	}
 	defer dst.Close()
 
-	// Copy file
-	_, err = io.Copy(dst, src)
-	if err != nil {
+	if _, err := io.Copy(dst, src); err != nil {
 		return fmt.Errorf("failed to copy file: %w", err)
 	}
 
@@ -1021,7 +1033,7 @@ func getMarkdownFiles(inputPath string) ([]string, error) {
 // processMarkdownFile processes a single markdown file:
 // 1. Extracts domain from the file
 // 2. Finds email recipients for that domain
-// 3. Sends email if recipients found, otherwise copies file to emailnotfound
+// 3. Sends email if recipients found, otherwise copies file to skippedemails
 // Returns: (emailSent bool, error)
 func processMarkdownFile(mdFilePath string, from, subject, appPassword, smtpHost, smtpPort string, useMarkdown bool, writeDebug bool, sentMap map[string]string) (bool, error) {
 	// Calculate file hash
@@ -1046,18 +1058,15 @@ func processMarkdownFile(mdFilePath string, from, subject, appPassword, smtpHost
 	domain, err := extractDomainFromMarkdown(mdFilePath)
 	if err != nil {
 		fmt.Printf("Error extracting domain from %s: %v\n", mdFilePath, err)
-		if err := handleNoEmailsFound(mdFilePath); err != nil {
-			fmt.Printf("Error handling no emails: %v\n", err)
-		}
 		return false, err
 	}
 
 	// Extract emails from domain
 	recipients, err := extractEmailsFromDomain(domain)
 	if err != nil || len(recipients) == 0 {
-		fmt.Printf("No emails found for %s, copying file to emailnotfound directory\n", mdFilePath)
-		if err := handleNoEmailsFound(mdFilePath); err != nil {
-			return false, fmt.Errorf("error handling no emails: %w", err)
+		fmt.Printf("No emails found for %s, copying file to skippedemails directory\n", mdFilePath)
+		if err := handleSkippedEmail(mdFilePath, "no_emails_found"); err != nil {
+			return false, fmt.Errorf("error handling skipped email: %w", err)
 		}
 		return false, nil // No email sent, no error
 	}
@@ -1085,6 +1094,9 @@ func processMarkdownFile(mdFilePath string, from, subject, appPassword, smtpHost
 		if len(recipients) == 0 {
 			fmt.Printf("[%s] No emails match base domain %s (filtered from %d email(s)), skipping send\n",
 				filepath.Base(mdFilePath), baseDomain, originalCount)
+			if err := handleSkippedEmail(mdFilePath, "domain_filter_no_match"); err != nil {
+				return false, fmt.Errorf("error handling skipped email: %w", err)
+			}
 			return false, nil // No email sent, no error
 		}
 
@@ -1101,6 +1113,9 @@ func processMarkdownFile(mdFilePath string, from, subject, appPassword, smtpHost
 		if len(recipients) == 0 {
 			fmt.Printf("[%s] No emails passed emailverify (checked_count == 3) (filtered from %d email(s)), skipping send\n",
 				filepath.Base(mdFilePath), originalCount)
+			if err := handleSkippedEmail(mdFilePath, "emailverify_no_match"); err != nil {
+				return false, fmt.Errorf("error handling skipped email: %w", err)
+			}
 			return false, nil // No email sent, no error
 		}
 
